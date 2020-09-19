@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ATSUMORI kabuka chart</title>
+
+    <!-- update the version number as needed -->
+    <script defer src="/__/firebase/7.21.0/firebase-app.js"></script>
+    <!-- include only the Firebase features as you need -->
+    <script defer src="/__/firebase/7.21.0/firebase-auth.js"></script>
+    <script defer src="/__/firebase/7.21.0/firebase-firestore.js"></script>
+    <!-- initialize the SDK after all desired features are loaded -->
+    <script defer src="/__/firebase/init.js"></script>
+
+    <style media="screen">
+      .menu {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>ATSUMORI kabuka chart</h1>
+
+    <div class="menu login">
+      <h2>Login</h2>
+      <a onclick="login()">login</a>
+    </div>
+
+    <div class="menu save_island">
+      <h2>Save island name</h2>
+      island name: <input type="text" class="island_name" size="40" />
+      <input type="button" onclick="saveIslandName()" value="save" />
+    </div>
+
+    <div class="menu add_kabuka">
+      <h2>Add kabuka</h2>
+      island name: <span class="island_name"></span><br />
+      <span class="key"></span> kabuka: <input type="number" class="kabuka" size="4" />
+      <input type="button" onclick="addKabuka()" value="add" />
+    </div>
+
+<script>
+      document.addEventListener('DOMContentLoaded', function() {
+        firebase.auth().onAuthStateChanged(function(user) {
+          if (user) {
+            console.log('logined');
+            console.log('displayName->' + user.displayName);
+            console.log('photoUrl ->' + user.photoUrl );
+            console.log('uid->' + user.uid);
+
+            var db = firebase.firestore();
+            var docRef = db.collection('users').doc(user.uid);
+            docRef.get().then(function(doc) {
+              if (doc.exists) {
+                console.log("Document data:", doc.data());
+                document.querySelector('span.key').textContent = getKabukaKey();
+                document.querySelector('span.island_name').textContent = doc.data().islandName;
+                document.querySelector('.add_kabuka').style.display = 'block';
+
+                var db = firebase.firestore();
+                var user = firebase.auth().currentUser;
+                let history = db.collection('users').doc(user.uid).collection('kabukaHistory').orderBy('createdAt');
+                history.get().then(snapshot => {
+                  snapshot.docs.forEach(doc => {
+                    var data = doc.data();
+                    console.log(data);
+                  });
+                });
+              } else {
+                // doc.data() will be undefined in this case
+                console.log("No such document!");
+                document.querySelector('.save_island').style.display = 'block';
+              }
+            }).catch(function(error) {
+                console.log("Error getting document:", error);
+            });
+          } else {
+            console.log('not logined');
+            document.querySelector('.login').style.display = 'block';
+          }
+        });
+      });
+
+      function login() {
+        var provider = new firebase.auth.GoogleAuthProvider();
+        firebase.auth().signInWithRedirect(provider);
+        firebase.auth().getRedirectResult().then(function(result) {
+          console.log('result->');
+          console.log(result);
+          if (result.credential) {
+            // This gives you a Google Access Token. You can use it to access the Google API.
+            var token = result.credential.accessToken;
+            console.log('token->' + token);
+            // ...
+          }
+          // The signed-in user info.
+          var user = result.user;
+          console.log('user->' + user);
+        }).catch(function(error) {
+          // Handle Errors here.
+          var errorCode = error.code;
+          var errorMessage = error.message;
+          // The email of the user's account used.
+          var email = error.email;
+          // The firebase.auth.AuthCredential type that was used.
+          var credential = error.credential;
+          // ...
+        });
+      }
+
+      function saveIslandName() {
+        var islandName = document.querySelector('input.island_name').value;
+        console.log('islandName->' + islandName);
+
+        var db = firebase.firestore();
+        var user = firebase.auth().currentUser;
+        db.collection('users').doc(user.uid).set({
+            islandName: islandName
+        })
+        .then(function() {
+            console.log("Document successfully written!");
+            location.reload();
+        })
+        .catch(function(error) {
+            console.error("Error writing document: ", error);
+        });
+      }
+
+      function addKabuka() {
+        var kabuka = document.querySelector('.kabuka').value;
+        var key = document.querySelector('.key').textContent;
+        var db = firebase.firestore();
+        var user = firebase.auth().currentUser;
+        db.collection('users').doc(user.uid).collection('kabuka').doc(key).set({
+          kabuka: kabuka,
+          createdAt: new Date().getTime()
+        });
+      }
+
+      function getKabukaKey() {
+        var date = new Date();
+        return date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate() + '_' + (date.getHours() < 12 ? 'AM' : 'PM ');
+      }
+    </script>
+  </body>
+</html>
