@@ -121,11 +121,11 @@
             islandName: islandName
         })
         .then(function() {
-            console.log("Document successfully written!");
-            location.reload();
+          console.log("Document successfully written!");
+          location.reload();
         })
         .catch(function(error) {
-            console.error("Error writing document: ", error);
+          console.error("Error writing document: ", error);
         });
       }
 
@@ -178,10 +178,10 @@
         chart = new Chart(ctx, {
             type: 'line',
             data: {
-                datasets: [{
-                    label: 'Last 7 days kabuka',
-                    borderWidth: 1
-                }]
+              datasets: [{
+                label: 'Last 7 days kabuka',
+                borderWidth: 1
+              }]
             },
             options: {
               responsive: true,
