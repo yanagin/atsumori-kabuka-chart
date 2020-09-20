@@ -44,7 +44,9 @@
         <button type="submit" class="btn btn-primary" onclick="addKabuka()">Add kabuka</button>
         <input type="hidden" class="key" />
       </form>
-      <canvas id="chart"></canvas>
+      <div class="chart-container" style="position: relative; width: 100%; height: 360px;">
+        <canvas id="chart"></canvas>
+      </div>
     </div>
 
     <script>
@@ -182,6 +184,8 @@
                 }]
             },
             options: {
+              responsive: true,
+              maintainAspectRatio: false
             }
         });
       });
