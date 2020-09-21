@@ -35,7 +35,12 @@
     </div>
 
     <div class="menu add_kabuka">
-      <h2 class="island_name"></h2>
+      <div class="media">
+        <img class="photo mr-3" width="48" height="48" />
+        <div class="media-body">
+          <h2 class="island_name"></h2>
+        </div>
+      </div>
       <form>
         <div class="form-group">
           <label for="kabuka">How match kabuka on <span class="now"></span> ?</label>
@@ -55,8 +60,10 @@
           if (user) {
             console.log('logined');
             console.log('displayName->' + user.displayName);
-            console.log('photoUrl ->' + user.photoUrl );
+            console.log('photoURL ->' + user.photoURL);
             console.log('uid->' + user.uid);
+
+            document.querySelector('.photo').src = user.photoURL;
 
             var db = firebase.firestore();
             var docRef = db.collection('users').doc(user.uid);
