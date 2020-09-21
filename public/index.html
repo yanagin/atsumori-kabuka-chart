@@ -167,6 +167,9 @@
           snapshot.docs.forEach(doc => {
             var data = doc.data();
             console.log(data);
+            if (chart.data.labels.indexOf(data.key) >= 0) {
+              return;
+            }
             chart.data.labels.push(data.key);
             chart.data.datasets.forEach(dataset => {
               dataset.data.push({
@@ -174,8 +177,8 @@
                 y: data.kabuka
               });
             });
-            chart.update();
           });
+          chart.update();
         });
       }
 
