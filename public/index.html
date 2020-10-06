@@ -177,7 +177,7 @@
       function refreshChart() {
         var db = firebase.firestore();
         var user = firebase.auth().currentUser;
-        let history = db.collection('users').doc(user.uid).collection('kabuka').orderBy('key');
+        let history = db.collection('users').doc(user.uid).collection('kabuka').orderBy('key', 'desc').limit(14);
         history.get().then(snapshot => {
           snapshot.docs.forEach(doc => {
             var data = doc.data();
@@ -186,7 +186,8 @@
               return;
             }
             chart.data.labels.push(data.key);
-            chart.data.datasets.forEach(dataset => {
+            var array = chart.data.datasets.reverse();
+            array.forEach(dataset => {
               dataset.data.push({
                 x: data.key,
                 y: data.kabuka
@@ -204,7 +205,7 @@
             type: 'line',
             data: {
               datasets: [{
-                label: 'Last 7 days kabuka',
+                label: 'Last 14 days kabuka',
                 borderWidth: 1
               }]
             },
