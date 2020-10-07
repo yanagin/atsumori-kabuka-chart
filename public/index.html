@@ -19,6 +19,11 @@
       .menu {
         display: none;
       }
+      .chart-container {
+        position: relative; 
+        width: 100vw; 
+        height: calc(100vw - 100px);
+      }
     </style>
   </head>
   <body>
@@ -49,8 +54,12 @@
         <button type="submit" class="btn btn-primary" onclick="return addKabuka()">Add kabuka</button>
         <input type="hidden" class="key" />
       </form>
-      <div class="chart-container" style="position: relative; width: 100vw; height: 100vw;">
+      <div class="chart-container">
         <canvas id="chart"></canvas>
+      </div>
+      <div>
+        <a class="btn btn-primary" onclick="return prev()">prev</a>   
+        <a class="btn btn-primary" onclick="return next()">next</a>        
       </div>
     </div>
 
@@ -161,8 +170,17 @@
         return date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate() + ' ' + (date.getHours() < 12 ? 'AM' : 'PM ');
       }
 
-      function getKabukaKey() {
-        var date = new Date();
+      function getKabukaKey(date) {
+        if (!date) {
+          date = new Date();
+        }
+        return formatDate(date) + '_' + (date.getHours() < 12 ? 'AM' : 'PM ');
+      }
+
+      function formatDate(date) {
+        if (!date) {
+          date = new Date();
+        }
         var month = (date.getMonth() + 1);
         if (month < 10) {
           month = '0' + month;
@@ -171,17 +189,33 @@
         if (day < 10) {
           day = '0' + day;
         }
-        return date.getFullYear() + '-' + month + '-' + day + '_' + (date.getHours() < 12 ? 'AM' : 'PM ');
+        return date.getFullYear() + '-' + month + '-' + day;
       }
 
-      function refreshChart() {
+      function refreshChart(offsetDays) {
+        if (!offsetDays) {
+          offsetDays = 0;
+        }
+        var weekFirstDay = getWeekFirstDay(offsetDays);
+        var keyConditionFrom = formatDate(weekFirstDay) + '_AM';
+        var keyConditionTo = formatDate(addDate(weekFirstDay, 7)) + '_AM';
+        console.log('firebase condition-> "key >= "' + keyConditionFrom + '" AND key < "' + keyConditionTo + '"');
+        
+        if (offsetDays) {
+          chart = createChart(formatDate(weekFirstDay) + ' week kabuka');
+        }
+
         var db = firebase.firestore();
         var user = firebase.auth().currentUser;
-        let history = db.collection('users').doc(user.uid).collection('kabuka').orderBy('key', 'desc').limit(14);
+        let history = db.collection('users').doc(user.uid).collection('kabuka')
+          .where('key', '>=', keyConditionFrom)
+          .where('key', '<', keyConditionTo)
+          .orderBy('key', 'desc');
         history.get().then(snapshot => {
           var docs = snapshot.docs.reverse();
           docs.forEach(doc => {
             var data = doc.data();
+            console.log(data);
             if (chart.data.labels.indexOf(data.key) >= 0) {
               return;
             }
@@ -197,14 +231,30 @@
         });
       }
 
-      var chart;
-      document.addEventListener('DOMContentLoaded', function() {
+      function getWeekFirstDay(offsetDays) {
+        var date = addDate(new Date(), offsetDays);
+        for (var i = 0; i < 7; i++) {
+          if (date.getDay() == 0) {
+            return date;
+          }
+          date = addDate(date, -1);
+        }
+        return null;
+      }
+
+      function addDate(date, days) {
+        var date2 = new Date(date.getTime());
+        date2.setDate(date2.getDate() + days);
+        return date2;
+      }
+
+      function createChart(label) {
         var ctx = document.getElementById('chart').getContext('2d');
-        chart = new Chart(ctx, {
+        return new Chart(ctx, {
             type: 'line',
             data: {
               datasets: [{
-                label: 'Last 14 days kabuka',
+                label: label,
                 borderWidth: 1
               }]
             },
@@ -213,6 +263,21 @@
               maintainAspectRatio: false
             }
         });
+      }
+
+      var offsetDays = 0;
+      function prev() {
+        offsetDays -= 7;
+        refreshChart(offsetDays);
+      }
+      function next() {
+        offsetDays += 7;
+        refreshChart(offsetDays);
+      }
+
+      var chart;
+      document.addEventListener('DOMContentLoaded', function() {
+        chart = createChart('This week kabuka');
       });
     </script>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
