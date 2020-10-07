@@ -262,7 +262,14 @@
             },
             options: {
               responsive: true,
-              maintainAspectRatio: false
+              maintainAspectRatio: false,
+              tooltips: {
+                callbacks: {
+                    label: function(tooltipItem, data) {
+                        return 'kabuka: ' + Math.round(tooltipItem.yLabel * 100) / 100;
+                    }
+                }
+              }
             }
         });
       }
