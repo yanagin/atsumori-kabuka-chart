@@ -179,15 +179,14 @@
         var user = firebase.auth().currentUser;
         let history = db.collection('users').doc(user.uid).collection('kabuka').orderBy('key', 'desc').limit(14);
         history.get().then(snapshot => {
-          snapshot.docs.forEach(doc => {
+          var docs = snapshot.docs.reverse();
+          docs.forEach(doc => {
             var data = doc.data();
-            console.log(data);
             if (chart.data.labels.indexOf(data.key) >= 0) {
               return;
             }
             chart.data.labels.push(data.key);
-            var array = chart.data.datasets.reverse();
-            array.forEach(dataset => {
+            chart.data.datasets.forEach(dataset => {
               dataset.data.push({
                 x: data.key,
                 y: data.kabuka
