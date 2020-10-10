@@ -16,13 +16,30 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
 
     <style media="screen">
+      body {
+        padding: 10px;
+      }
       .menu {
         display: none;
       }
       .chart-container {
         position: relative; 
-        width: 100vw; 
+        width: calc(100vw - 20px); 
         height: calc(100vw - 100px);
+      }
+      .form-group label {
+        display: block;
+      }
+      .form-group .island_name, .form-group .kabuka {
+        display: inline-block; 
+        width: 50%;
+      }
+      .form-group .btn {
+        vertical-align: bottom;
+      }
+      .navigator {
+        margin-top: 10px;
+        text-align: center;
       }
     </style>
   </head>
@@ -34,8 +51,8 @@
         <div class="form-group">
           <label for="island_name">Wahat is Island name ?</label>
           <input type="text" class="form-control island_name" id="island_name">
+          <button type="submit" class="btn btn-primary" onclick="return saveIslandName()">Save</button>
         </div>
-        <button type="submit" class="btn btn-primary" onclick="return saveIslandName()">Save</button>
       </form>
     </div>
 
@@ -50,16 +67,17 @@
         <div class="form-group">
           <label for="kabuka">How match kabuka on <span class="now"></span> ?</label>
           <input type="number" class="form-control kabuka" id="kabuka">
+          <button type="submit" class="btn btn-primary" onclick="return addKabuka()">Add kabuka</button>
         </div>
-        <button type="submit" class="btn btn-primary" onclick="return addKabuka()">Add kabuka</button>
         <input type="hidden" class="key" />
       </form>
       <div class="chart-container">
         <canvas id="chart"></canvas>
       </div>
-      <div>
-        <a class="btn btn-primary" onclick="return prev()">prev</a>   
-        <a class="btn btn-primary" onclick="return next()">next</a>        
+      <div class="navigator">
+        <a class="btn btn-primary" onclick="return prev()">Prev</a>
+        <a class="btn btn-primary" onclick="return current()">This week</a>
+        <a class="btn btn-primary" onclick="return next()">Next</a>
       </div>
     </div>
 
@@ -277,6 +295,10 @@
       var offsetDays = 0;
       function prev() {
         offsetDays -= 7;
+        refreshChart(offsetDays);
+      }
+      function current() {
+        offsetDays = 0;
         refreshChart(offsetDays);
       }
       function next() {
